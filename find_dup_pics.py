@@ -8,7 +8,8 @@ from pathlib import Path
 THRESHOLD = 5
 
 # Directory da scansionare
-image_dir = Path(".")
+image_dir = input("Inserisci il percorso file (cartella) da scansionare: ")
+image_dir = Path(image_dir) if image_dir else Path(".")
 
 # Raccogli tutti i JPG/JPEG
 image_files = list(image_dir.glob("*.jpg")) + list(image_dir.glob("*.JPG")) + \
