@@ -2,7 +2,9 @@
 """Main Flask application with PyWebView desktop wrapper."""
 
 import json
+import logging
 import os
+import subprocess
 from pathlib import Path
 
 import webview
@@ -15,19 +17,35 @@ from src.exif_extractor import scan_folder_for_dates
 from src.file_operations import move_to_trash
 from src.image_utils import generate_thumbnail, get_images_in_folder
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-class FolderSelectionAPI:
-    """API for folder selection dialog."""
+
+class Api:
+    """API exposed to JavaScript via PyWebView."""
     
     def select_folder(self):
-        """Open native folder selection dialog."""
-        # This will be called from JavaScript
-        # PyWebView doesn't have a built-in folder dialog,
-        # so we'll handle this via JavaScript in the template
-        return ""
+        """Open native folder selection dialog using macOS osascript."""
+        try:
+            result = subprocess.run(
+                ['osascript', '-e', 'POSIX path of (choose folder)'],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+            
+            if result.returncode == 0 and result.stdout.strip():
+                folder = result.stdout.strip()
+                logger.debug(f"Folder selected: {folder}")
+                return folder
+            
+            logger.debug("Folder selection cancelled")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error selecting folder: {e}")
+            return None
 
-
-api = FolderSelectionAPI()
 
 app = Flask(
     __name__,
@@ -46,10 +64,15 @@ def index():
 def duplicates_select_folder():
     """Handle folder selection for duplicate finder."""
     data = request.get_json()
-    folder_path = Path(data.get("folder_path", ""))
+    folder_path_str = data.get("folder_path", "")
+    folder_path = Path(folder_path_str)
+    
+    logger.debug(f"duplicates_select_folder received: '{folder_path_str}'")
+    logger.debug(f"Path exists: {folder_path.exists()}, is_dir: {folder_path.is_dir()}")
     
     if not folder_path.exists() or not folder_path.is_dir():
-        return jsonify({"error": "Invalid folder path"}), 400
+        logger.error(f"Invalid folder path: {folder_path_str}")
+        return jsonify({"error": f"Invalid folder path: {folder_path_str}"}), 400
     
     images = get_images_in_folder(folder_path)
     
@@ -116,10 +139,15 @@ def duplicates_delete():
 def gallery_select_folder():
     """Handle folder selection for gallery."""
     data = request.get_json()
-    folder_path = Path(data.get("folder_path", ""))
+    folder_path_str = data.get("folder_path", "")
+    folder_path = Path(folder_path_str)
+    
+    logger.debug(f"gallery_select_folder received: '{folder_path_str}'")
+    logger.debug(f"Path exists: {folder_path.exists()}, is_dir: {folder_path.is_dir()}")
     
     if not folder_path.exists() or not folder_path.is_dir():
-        return jsonify({"error": "Invalid folder path"}), 400
+        logger.error(f"Invalid folder path: {folder_path_str}")
+        return jsonify({"error": f"Invalid folder path: {folder_path_str}"}), 400
     
     metadata = scan_folder_for_dates(folder_path)
     
@@ -173,14 +201,16 @@ def gallery_export():
 
 def run_desktop():
     """Run the app as a desktop application using PyWebView."""
+    api = Api()
     webview.create_window(
         "Metadata App",
         app,
         width=1000,
         height=700,
-        resizable=True
+        resizable=True,
+        js_api=api
     )
-    webview.start(debug=False, func=api)
+    webview.start(debug=False)
 
 
 @app.route("/duplicates")
@@ -195,26 +225,5 @@ def gallery():
     return render_template("gallery.html")
 
 
-@app.route("/select-folder", methods=["POST"])
-def select_folder():
-    """Handle folder selection via file input."""
-    if 'folder' not in request.files:
-        return jsonify({"error": "No folder selected"}), 400
-    
-    file = request.files['folder']
-    if not file.filename:
-        return jsonify({"error": "No folder selected"}), 400
-    
-    # Get the folder path from the file path
-    folder_path = os.path.dirname(file.filename)
-    
-    return jsonify({"folder_path": folder_path})
-
-
 if __name__ == "__main__":
-    import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "--web":
-        app.run(debug=True, port=5000)
-    else:
-        run_desktop()
+    run_desktop()
