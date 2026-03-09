@@ -255,7 +255,7 @@ function deleteFile(filename) {
     fetch('/duplicates/delete', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        file_path: filePath
+        body: JSON.stringify({file_path: filePath})
     })
     .then(res => res.json())
     .then(data => {
