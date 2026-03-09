@@ -58,6 +58,7 @@ let currentFolder = '';
 let duplicates = [];
 let currentPairIndex = 0;
 let keptFiles = new Set();
+let deletedFiles = new Set();
 
 function goBack() {
     window.location.href = '/';
@@ -68,6 +69,7 @@ function resetApp() {
     duplicates = [];
     currentPairIndex = 0;
     keptFiles = new Set();
+    deletedFiles = new Set();
     
     document.getElementById('folder-select').classList.remove('hidden');
     document.getElementById('scanning').classList.add('hidden');
@@ -260,6 +262,7 @@ function deleteFile(filename) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            deletedFiles.add(filePath);
             skipPair();
         } else {
             alert('Failed to delete file: ' + (data.error || 'Unknown error'));
@@ -278,11 +281,15 @@ function skipPair() {
 function showCompletion() {
     document.getElementById('completion').classList.remove('hidden');
     
+    const totalImages = duplicates.length * 2;
     const keptCount = keptFiles.size;
-    const deletedCount = duplicates.length * 2 - keptCount;
+    const deletedCount = deletedFiles.size;
+    const skippedCount = totalImages - keptCount - deletedCount;
+    
+    const finalKeptCount = keptCount + skippedCount;
     
     document.getElementById('completion-text').textContent = 
-        `Kept ${keptCount} image(s). Removed ${deletedCount} duplicate(s).`;
+        `Kept ${finalKeptCount} image(s). Removed ${deletedCount} duplicate(s).`;
 }
 </script>
 {% endblock %}
