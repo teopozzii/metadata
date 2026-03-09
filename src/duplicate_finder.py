@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import TypedDict
+import imagehash
 
 from config import DUPLICATE_THRESHOLD
 from src.image_utils import get_image_hash, get_images_in_folder
@@ -19,7 +20,7 @@ def find_duplicates(folder_path: Path) -> list[DuplicatePair]:
     """Find duplicate images in a folder using perceptual hashing."""
     images = get_images_in_folder(folder_path)
     
-    hashes: dict[str, tuple[Path, str]] = {}
+    hashes: dict[str, tuple[Path, imagehash.ImageHash]] = {}
     
     for img_path in images:
         img_hash = get_image_hash(img_path)
@@ -33,7 +34,7 @@ def find_duplicates(folder_path: Path) -> list[DuplicatePair]:
     
     for i, (name1, (path1, hash1)) in enumerate(items):
         for name2, (path2, hash2) in items[i + 1:]:
-            hamming_dist = int(hash1) - int(hash2)
+            hamming_dist = int(hash1 - hash2)
             
             if hamming_dist <= DUPLICATE_THRESHOLD:
                 pair = frozenset([name1, name2])
@@ -46,5 +47,7 @@ def find_duplicates(folder_path: Path) -> list[DuplicatePair]:
                         "distance": hamming_dist
                     })
                     seen_pairs.add(pair)
+    
+    return duplicates
     
     return duplicates

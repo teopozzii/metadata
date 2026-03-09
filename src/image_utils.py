@@ -12,11 +12,11 @@ def is_supported_image(file_path: Path) -> bool:
     return file_path.suffix.lower() in SUPPORTED_EXTENSIONS
 
 
-def get_image_hash(image_path: Path) -> str | None:
+def get_image_hash(image_path: Path) -> imagehash.ImageHash | None:
     """Compute perceptual hash of an image."""
     try:
         with Image.open(image_path) as img:
-            return str(imagehash.phash(img))
+            return imagehash.phash(img)
     except Exception:
         return None
 
