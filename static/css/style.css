@@ -1,0 +1,460 @@
+/* Metadata App - Deep Blue & Dark Orange Theme */
+
+:root {
+    --primary-bg: #1a237e;
+    --secondary-bg: #283593;
+    --accent: #ff6f00;
+    --accent-hover: #ff8f00;
+    --text-white: #ffffff;
+    --text-light: #e0e0e0;
+    --success: #4caf50;
+    --danger: #f44336;
+    --dashed-border: #ff6f00;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(135deg, var(--primary-bg) 0%, #0d1442 100%);
+    min-height: 100vh;
+    color: var(--text-white);
+}
+
+.app-container {
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Header */
+.app-header {
+    text-align: center;
+    padding: 30px 20px;
+    margin-bottom: 20px;
+}
+
+.app-header h1 {
+    font-size: 2.5rem;
+    color: var(--text-white);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.app-header .subtitle {
+    color: var(--accent);
+    font-size: 1.1rem;
+    margin-top: 8px;
+}
+
+/* Component Cards */
+.component-list {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.component-card {
+    background: var(--secondary-bg);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.component-card:hover {
+    background: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 111, 0, 0.4);
+}
+
+.component-card .icon {
+    font-size: 2.5rem;
+}
+
+.component-card .info h2 {
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+}
+
+.component-card .info p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--text-white);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-success {
+    background: var(--success);
+    color: var(--text-white);
+}
+
+.btn-success:hover {
+    background: #43a047;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: var(--text-white);
+}
+
+.btn-danger:hover {
+    background: #e53935;
+}
+
+.btn-back {
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    margin-bottom: 20px;
+}
+
+.btn-back:hover {
+    background: var(--accent);
+    color: var(--text-white);
+}
+
+/* Loading Spinner */
+.loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Progress Bar */
+.progress-container {
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+}
+
+/* Messages */
+.message {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.message-info {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--accent);
+}
+
+.message-success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid var(--success);
+}
+
+.message-error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid var(--danger);
+}
+
+/* Duplicate Viewer Styles */
+.duplicate-viewer {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.duplicate-pair {
+    background: var(--secondary-bg);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.pair-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.pair-counter {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.pair-images {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.image-container {
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    text-align: center;
+}
+
+.image-wrapper {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.image-wrapper.placeholder {
+    border: 3px dashed var(--dashed-border);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-wrapper.placeholder span {
+    color: var(--accent);
+    font-size: 0.9rem;
+}
+
+.image-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.image-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.image-btn.keep {
+    background: var(--success);
+    color: white;
+}
+
+.image-btn.keep:hover {
+    background: #43a047;
+}
+
+.image-btn.skip {
+    background: var(--danger);
+    color: white;
+}
+
+.image-btn.skip:hover {
+    background: #e53935;
+}
+
+.skip-pair-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 40px;
+    background: transparent;
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skip-pair-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Gallery Styles */
+.gallery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover img {
+    opacity: 0.7;
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 15px;
+    text-align: center;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.gallery-overlay .filename {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.gallery-overlay .shot-date {
+    color: var(--accent);
+    font-size: 0.85rem;
+}
+
+.no-date {
+    color: #ff9800;
+    font-style: italic;
+}
+
+.export-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.export-section input {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 2px solid var(--accent);
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.export-section input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Hidden */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .pair-images {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .image-container {
+        max-width: 100%;
+    }
+    
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}

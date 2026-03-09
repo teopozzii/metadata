@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Metadata App - Home{% endblock %}
+
+{% block content %}
+<div class="app-header">
+    <h1>Metadata App</h1>
+    <p class="subtitle">Manage your image library</p>
+</div>
+
+<div class="component-list">
+    <div class="component-card" onclick="navigateTo('duplicates')">
+        <div class="icon">🗑️</div>
+        <div class="info">
+            <h2>Remove duplicates</h2>
+            <p>Find and remove duplicate images from a folder</p>
+        </div>
+    </div>
+    
+    <div class="component-card" onclick="navigateTo('gallery')">
+        <div class="icon">📅</div>
+        <div class="info">
+            <h2>Retrieve shot date</h2>
+            <p>View and export EXIF shot dates from your images</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function navigateTo(component) {
+    if (component === 'duplicates') {
+        window.location.href = '/duplicates';
+    } else if (component === 'gallery') {
+        window.location.href = '/gallery';
+    }
+}
+</script>
+{% endblock %}

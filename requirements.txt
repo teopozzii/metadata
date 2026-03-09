@@ -2,3 +2,7 @@ pillow
 imagehash
 rich
 questionary
+flask
+pywebview
+send2trash
+exifread

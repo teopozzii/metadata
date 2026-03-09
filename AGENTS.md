@@ -2,61 +2,65 @@
 
 ## Project Overview
 
-This is a Python project for working with image metadata. It contains scripts to:
-- Extract original creation dates from JPG files (`pic_dates.sh`)
-- Find duplicate/similar images using perceptual hashing (`find_dup_pics.py`)
+This is a Python desktop application for working with image metadata. It provides:
+- A desktop GUI for finding and removing duplicate images
+- A gallery view for viewing and exporting EXIF shot dates
+
+## Technology Stack
+
+- **Flask**: Web framework for the UI
+- **PyWebView**: Desktop wrapper for native window
+- **Pillow**: Image processing and thumbnail generation
+- **imagehash**: Perceptual hashing for duplicate detection
+- **exifread**: EXIF metadata extraction
+- **send2trash**: Safe file deletion (moves to Trash)
 
 ## Dependencies
-
-- pillow
-- imagehash
-- rich
-- questionary
 
 Install with: `pip install -r requirements.txt`
 
 ---
 
-## Build / Lint / Test Commands
+## Running the Application
 
-### Running the Scripts
-
+### Desktop Mode (Default)
 ```bash
-# Run the duplicate image finder
-python find_dup_pics.py
-
-# Run the pic dates extraction script
-bash pic_dates.sh
+python app.py
 ```
 
-### Testing
-
-There are currently no automated tests in this repository. If tests are added:
-- Use `pytest` as the test framework
-- Place tests in a `tests/` directory
-
-To run a single test with pytest:
+### Web Mode (for development/testing)
 ```bash
-pytest tests/test_file.py::test_function_name
-pytest tests/test_file.py -k "test_function_name"
+python app.py --web
 ```
+Then open http://localhost:5000 in your browser.
 
-### Linting and Code Quality
+---
 
-This project does not currently have formal linting configured. When adding linting:
+## Project Structure
 
-```bash
-# Install linting tools
-pip install ruff black mypy
-
-# Run ruff (linting)
-ruff check .
-
-# Run black (formatting)
-black .
-
-# Run mypy (type checking)
-mypy .
+```
+metadata/
+├── AGENTS.md              # This file
+├── README.md              # Project documentation
+├── app.py                 # Main Flask application + desktop entry point
+├── config.py              # App configuration
+├── requirements.txt       # Python dependencies
+├── src/
+│   ├── __init__.py
+│   ├── image_utils.py     # Image processing utilities
+│   ├── duplicate_finder.py # Duplicate detection logic
+│   ├── exif_extractor.py  # EXIF metadata extraction
+│   └── file_operations.py # File operations (trash)
+├── templates/
+│   ├── base.html          # Base template with styling
+│   ├── landing.html       # Landing page
+│   ├── duplicates.html   # Duplicate finder UI
+│   └── gallery.html      # Gallery view UI
+└── static/
+    ├── css/
+    │   └── style.css     # Deep blue/dark orange theme
+    └── js/
+        └── script.js     # Client-side JavaScript
 ```
 
 ---
@@ -77,18 +81,6 @@ mypy .
 - Use blank lines to separate logical sections within functions
 - Two blank lines between top-level definitions (functions, classes)
 
-Example:
-```python
-def function_one():
-    """Short description."""
-    pass
-
-
-def function_two():
-    """Short description."""
-    pass
-```
-
 ### Imports
 
 - Use absolute imports with `from module import item` pattern
@@ -96,146 +88,109 @@ def function_two():
 - Separate groups with a blank line
 - Sort imports alphabetically within each group
 
-Example:
-```python
-import os
-import sys
-from pathlib import Path
-
-from PIL import Image
-import imagehash
-from rich.console import Console
-
-from mypackage import mymodule
-```
-
 ### Naming Conventions
 
 - **Functions/variables**: `snake_case` (e.g., `my_function`, `image_hash`)
 - **Classes**: `PascalCase` (e.g., `ImageProcessor`)
 - **Constants**: `UPPER_SNAKE_CASE` (e.g., `THRESHOLD = 5`)
 - **Private functions**: prefix with underscore (e.g., `_internal_function`)
-- Use descriptive names: prefer `image_files` over `files` or `imgs`
 
 ### Type Hints
 
-Type hints are recommended for function parameters and return values:
-
-```python
-def process_image(image_path: Path, threshold: int = 5) -> dict[str, str]:
-    """Process a single image.
-    
-    Args:
-        image_path: Path to the image file
-        threshold: Similarity threshold (default 5)
-    
-    Returns:
-        Dictionary with processing results
-    """
-    ...
-```
+Type hints are recommended for function parameters and return values.
 
 ### Error Handling
 
 - Use try/except blocks for operations that may fail
 - Catch specific exceptions when possible
-- Provide informative error messages that help debugging
-- Log errors appropriately (use `rich.console.Console` for user-facing errors)
+- Return JSON errors via `jsonify({"error": "message"})` for API routes
 
-Example:
-```python
-try:
-    with Image.open(img_path) as img:
-        img_hash = imagehash.phash(img)
-except PermissionError:
-    console.print(f"[red]Permission denied: {img_path}[/red]")
-except Exception as e:
-    errors.append((img_path.name, str(e)))
-```
+---
 
-### Rich Console Usage
+## UI/UX Guidelines
 
-When using `rich` for console output:
-- Use color codes: `[red]`, `[green]`, `[cyan]`, `[yellow]`, `[bold]`
-- Use `console.print()` for output
-- Use `track()` for progress bars
-- Use `Table` for structured data display
-- Use `Panel` for headers/messages
+### Color Palette
 
-Example:
-```python
-console.print(f"[bold green]✓ Processed {count} images[/bold green]")
-```
+| Role | Color | Hex |
+|------|-------|-----|
+| Primary Background | Deep Blue | `#1a237e` |
+| Secondary Background | Lighter Blue | `#283593` |
+| Accent | Dark Orange | `#ff6f00` |
+| Accent Hover | Orange | `#ff8f00` |
+| Text | White | `#ffffff` |
+| Success | Green | `#4caf50` |
+| Danger | Red | `#f44336` |
 
-### File Path Handling
+### Template Structure
 
-- Use `pathlib.Path` for all file path operations
-- Use `.resolve()` to get absolute paths when needed
-- Check file existence before processing
+- Use Jinja2 templates in `templates/` directory
+- CSS goes in `static/css/style.css`
+- JavaScript goes in `static/js/script.js`
+- All templates extend `base.html`
 
-### Questionary Usage
+### JavaScript Patterns
 
-When using `questionary` for interactive menus:
-- Use appropriate icons in titles (📂, 📁, ✅, ⚠️, 🔍)
-- Handle `None` return (user pressed Ctrl+C)
-- Provide clear navigation options
+- Use vanilla JavaScript (no frameworks)
+- Use `fetch()` for API calls
+- Handle folder selection via the provided `openFolderPicker()` function
 
-Example:
-```python
-selection = questionary.select(
-    "Choose an option:",
-    choices=[
-        questionary.Choice(title="📂 Select folder", value="select"),
-        questionary.Choice(title="⬆️  Go up", value="up"),
-    ]
-).ask()
+---
+
+## API Routes
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/` | GET | Landing page |
+| `/duplicates` | GET | Duplicate finder page |
+| `/duplicates/select-folder` | POST | Initialize folder scan |
+| `/duplicates/scan` | POST | Find duplicates |
+| `/duplicates/thumbnail` | GET | Serve image thumbnail |
+| `/duplicates/delete` | POST | Move file to trash |
+| `/gallery` | GET | Gallery page |
+| `/gallery/select-folder` | POST | Load folder metadata |
+| `/gallery/thumbnail` | GET | Serve gallery thumbnail |
+| `/gallery/export` | POST | Export report to JSON |
+
+---
+
+## Testing
+
+There are currently no automated tests. To test manually:
+1. Run `python app.py --web` 
+2. Open http://localhost:5000
+3. Test each component
+
+For single-component testing via pytest (if tests are added):
+```bash
+pytest tests/test_file.py::test_function_name
+pytest tests/test_file.py -k "test_function_name"
 ```
 
 ---
 
-## File Structure
-
-```
-metadata/
-├── AGENTS.md              # This file
-├── README.md             # Project documentation
-├── requirements.txt      # Python dependencies
-├── find_dup_pics.py      # Main duplicate finder script
-├── pic_dates.sh          # Shell script for date extraction
-├── docs/
-│   └── ex1.png           # Documentation images
-└── .gitignore
-```
-
----
-
-## Common Tasks
-
-### Running the Duplicate Finder
+## Linting
 
 ```bash
-python find_dup_pics.py
+# Install linting tools
+pip install ruff black mypy
+
+# Run ruff (linting)
+ruff check .
+
+# Run black (formatting)
+black .
+
+# Run mypy (type checking)
+mypy .
 ```
-
-The script will:
-1. Open an interactive folder navigator
-2. Scan selected folder for images (jpg, jpeg, png)
-3. Calculate perceptual hashes for all images
-4. Compare pairs to find duplicates within threshold
-5. Display results in a formatted table
-
-### Adding a New Dependency
-
-1. Install: `pip install <package>`
-2. Add to `requirements.txt`
-3. Update this AGENTS.md if it introduces new patterns
 
 ---
 
 ## Notes for Agents
 
-- This is a small, simple Python project - no complex build systems
-- No CI/CD pipeline currently configured
-- Scripts are intended to be run directly with `python` or `bash`
-- Follow PEP 8 style guidelines for any new code
-- Test any changes manually since no automated tests exist
+- This is a simple Flask + PyWebView desktop app
+- No complex build systems or CI/CD
+- The app uses native file dialogs via PyWebView
+- All file deletions move files to Trash (recoverable)
+- Supported image formats: jpg, jpeg, png, bmp, webp, tiff, tif
+- Follow PEP 8 style guidelines

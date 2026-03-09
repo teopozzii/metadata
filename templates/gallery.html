@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Retrieve Shot Date{% endblock %}
+
+{% block content %}
+<div class="app-header">
+    <h1>📅 Retrieve Shot Date</h1>
+    <p class="subtitle">View and export EXIF shot dates</p>
+</div>
+
+<button class="btn-back" onclick="goBack()">← Back to Home</button>
+
+<div id="folder-select" class="message message-info">
+    <p>Click the button below to select a folder containing images:</p>
+    <button class="btn btn-primary" style="margin-top: 15px;" onclick="selectFolder()">
+        📂 Select Folder
+    </button>
+</div>
+
+<div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p>Scanning folder and extracting EXIF data...</p>
+</div>
+
+<div id="gallery-view" class="gallery-container hidden">
+    <div class="gallery-header">
+        <h2 id="folder-name"></h2>
+        <span id="image-count"></span>
+    </div>
+    
+    <div class="gallery-grid" id="gallery-grid"></div>
+    
+    <div class="export-section">
+        <input type="text" id="export-filename" placeholder="shot_dates_report.json" value="shot_dates_report.json">
+        <button class="btn btn-success" onclick="exportReport()">📥 Export Report</button>
+    </div>
+</div>
+
+<div id="error" class="hidden">
+    <div class="message message-error" id="error-text"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentFolder = '';
+let imageData = [];
+
+function goBack() {
+    window.location.href = '/';
+}
+
+function showError(msg) {
+    document.getElementById('folder-select').classList.add('hidden');
+    document.getElementById('error-text').textContent = msg;
+    document.getElementById('error').classList.remove('hidden');
+}
+
+function selectFolder() {
+    openFolderPicker(function(folderPath) {
+        if (folderPath) {
+            loadGallery(folderPath);
+        }
+    });
+}
+
+function loadGallery(folderPath) {
+    currentFolder = folderPath;
+    
+    document.getElementById('folder-select').classList.add('hidden');
+    document.getElementById('loading').classList.remove('hidden');
+    
+    fetch('/gallery/select-folder', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({folder_path: folderPath})
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('loading').classList.add('hidden');
+        
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+        
+        imageData = data.images;
+        
+        document.getElementById('folder-name').textContent = 
+            folderPath.split('/').pop() || folderPath;
+        document.getElementById('image-count').textContent = 
+            `${imageData.length} images`;
+        
+        renderGallery();
+        
+        document.getElementById('gallery-view').classList.remove('hidden');
+    })
+    .catch(err => {
+        showError('Error: ' + err.message);
+    });
+}
+
+function getThumbnailUrl(filePath) {
+    const encoded = encodeURIComponent(filePath);
+    return `/gallery/thumbnail?path=${encoded}`;
+}
+
+function renderGallery() {
+    const grid = document.getElementById('gallery-grid');
+    grid.innerHTML = '';
+    
+    imageData.forEach(img => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        
+        const dateDisplay = img.shot_date 
+            ? img.shot_date.replace(':', '/').replace(':', '/')
+            : '<span class="no-date">No date</span>';
+        
+        item.innerHTML = `
+            <img src="${getThumbnailUrl(img.file_path)}" alt="${img.filename}">
+            <div class="gallery-overlay">
+                <div class="filename">${img.filename}</div>
+                <div class="shot-date">${dateDisplay}</div>
+            </div>
+        `;
+        
+        grid.appendChild(item);
+    });
+}
+
+function exportReport() {
+    const filenameInput = document.getElementById('export-filename');
+    const filename = filenameInput.value.trim() || 'shot_dates_report.json';
+    
+    fetch('/gallery/export', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            folder_path: currentFolder,
+            filename: filename
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Report exported to:\n' + data.export_path);
+        } else {
+            alert('❌ Failed to export: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        alert('Error exporting report: ' + err.message);
+    });
+}
+</script>
+{% endblock %}
