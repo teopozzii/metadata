@@ -47,6 +47,10 @@ To distribute:
 - Drag `dist/Metadata App.app` to `/Applications`
 - Or create a .zip for sharing
 
+## Download
+
+Pre-built releases are available on the [GitHub Releases](https://github.com/teopozzii/metadata/releases) page. The app is automatically built and released when changes are pushed to `main`.
+
 ## Supported Image Formats
 
 - JPEG (.jpg, .jpeg)

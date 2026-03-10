@@ -217,10 +217,22 @@ mypy .
 
 ---
 
+## CI/CD
+
+Automated builds are handled by GitHub Actions (`.github/workflows/build.yml`):
+
+| Trigger | Action |
+|---------|--------|
+| Push to `main` | Builds .app → Creates zip → Creates GitHub Release |
+| Manual | Run from Actions tab |
+
+The built app is available as a release asset, not stored in git.
+
+---
+
 ## Notes for Agents
 
 - This is a Flask + PyWebView desktop app (macOS only)
-- No complex build systems or CI/CD
 - All file deletions move files to Trash (recoverable)
 - Supported image formats: jpg, jpeg, png, bmp, webp, tiff, tif
 - Follow PEP 8 style guidelines
