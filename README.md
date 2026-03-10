@@ -1,13 +1,13 @@
 # Metadata App
 
-A desktop application for working with image metadata. Find duplicate images and retrieve EXIF shot dates from your photo collection.
+A desktop application for working with image metadata on macOS. Find duplicate images and retrieve EXIF shot dates from your photo collection.
 
 ## Features
 
 ### 🗑️ Remove Duplicates
 - Find duplicate and similar images using perceptual hashing
 - Interactive side-by-side comparison
-- Choose to keep one, both, or neither image
+- Choose to keep one, both, or skip (skip = keep both)
 - Files are moved to Trash (recoverable)
 
 ### 📅 Retrieve Shot Date
@@ -23,16 +23,11 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Desktop Mode (Default)
 ```bash
 python app.py
 ```
 
-### Web Mode (for development)
-```bash
-python app.py --web
-```
-Then open http://localhost:5000 in your browser.
+This opens the app in a native macOS window.
 
 ## Supported Image Formats
 
@@ -45,20 +40,33 @@ Then open http://localhost:5000 in your browser.
 ## Requirements
 
 - Python 3.11+
-- macOS (PyWebView native dialogs)
+- macOS (required for native folder dialogs)
 
 ## Project Structure
 
 ```
 metadata/
-├── app.py                 # Main application
-├── config.py             # Configuration
+├── app.py                 # Main application (Flask + PyWebView)
+├── config.py             # Configuration settings
 ├── src/                  # Source modules
-│   ├── image_utils.py
-│   ├── duplicate_finder.py
-│   ├── exif_extractor.py
-│   └── file_operations.py
+│   ├── __init__.py
+│   ├── image_utils.py    # Image processing (hashing, thumbnails)
+│   ├── duplicate_finder.py  # Duplicate detection logic
+│   ├── exif_extractor.py    # EXIF metadata extraction
+│   └── file_operations.py   # File operations (trash)
 ├── templates/            # HTML templates
+│   ├── base.html
+│   ├── landing.html
+│   ├── duplicates.html
+│   └── gallery.html
 ├── static/               # CSS and JavaScript
+│   ├── css/style.css
+│   └── js/script.js
 └── requirements.txt
 ```
+
+## Legacy Scripts
+
+The original CLI implementations are preserved for reference:
+- `find_dup_pics.py` - Original duplicate finder (terminal-based)
+- `pic_dates.sh` - Original date extraction (shell script)

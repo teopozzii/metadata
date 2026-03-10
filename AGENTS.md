@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is a Python desktop application for working with image metadata. It provides:
+This is a Python desktop application for working with image metadata on macOS. It provides:
 - A desktop GUI for finding and removing duplicate images
 - A gallery view for viewing and exporting EXIF shot dates
 
@@ -14,6 +14,7 @@ This is a Python desktop application for working with image metadata. It provide
 - **imagehash**: Perceptual hashing for duplicate detection
 - **exifread**: EXIF metadata extraction
 - **send2trash**: Safe file deletion (moves to Trash)
+- **osascript**: Native macOS folder dialog (via Python subprocess)
 
 ## Dependencies
 
@@ -23,16 +24,11 @@ Install with: `pip install -r requirements.txt`
 
 ## Running the Application
 
-### Desktop Mode (Default)
 ```bash
 python app.py
 ```
 
-### Web Mode (for development/testing)
-```bash
-python app.py --web
-```
-Then open http://localhost:5000 in your browser.
+This opens the app in a native macOS window.
 
 ---
 
@@ -42,12 +38,12 @@ Then open http://localhost:5000 in your browser.
 metadata/
 ├── AGENTS.md              # This file
 ├── README.md              # Project documentation
-├── app.py                 # Main Flask application + desktop entry point
+├── app.py                 # Main Flask application + PyWebView entry
 ├── config.py              # App configuration
 ├── requirements.txt       # Python dependencies
 ├── src/
 │   ├── __init__.py
-│   ├── image_utils.py     # Image processing utilities
+│   ├── image_utils.py     # Image processing (hashing, thumbnails)
 │   ├── duplicate_finder.py # Duplicate detection logic
 │   ├── exif_extractor.py  # EXIF metadata extraction
 │   └── file_operations.py # File operations (trash)
@@ -132,7 +128,7 @@ Type hints are recommended for function parameters and return values.
 
 - Use vanilla JavaScript (no frameworks)
 - Use `fetch()` for API calls
-- Handle folder selection via the provided `openFolderPicker()` function
+- Folder selection is handled via `window.pywebview.api.select_folder()` which calls a Python function that uses osascript
 
 ---
 
@@ -142,7 +138,7 @@ Type hints are recommended for function parameters and return values.
 |-------|--------|-------------|
 | `/` | GET | Landing page |
 | `/duplicates` | GET | Duplicate finder page |
-| `/duplicates/select-folder` | POST | Initialize folder scan |
+| `/duplicates/select-folder` | POST | Validate folder and get image count |
 | `/duplicates/scan` | POST | Find duplicates |
 | `/duplicates/thumbnail` | GET | Serve image thumbnail |
 | `/duplicates/delete` | POST | Move file to trash |
@@ -153,14 +149,27 @@ Type hints are recommended for function parameters and return values.
 
 ---
 
+## Folder Selection Implementation
+
+The app uses macOS's native folder dialog via osascript:
+
+1. JavaScript calls `window.pywebview.api.select_folder()`
+2. Python's `Api.select_folder()` runs: `subprocess.run(['osascript', '-e', 'POSIX path of (choose folder)'])`
+3. The result is returned to JavaScript as a Promise
+
+This approach is used instead of tkinter (which may not be available) or PyWebView's JavaScript API (which had compatibility issues).
+
+---
+
 ## Testing
 
-There are currently no automated tests. To test manually:
-1. Run `python app.py --web` 
-2. Open http://localhost:5000
-3. Test each component
+Manual testing only:
+1. Run `python app.py`
+2. Test folder selection in both components
+3. Test duplicate detection and deletion
+4. Test gallery view and export
 
-For single-component testing via pytest (if tests are added):
+For pytest (if tests are added):
 ```bash
 pytest tests/test_file.py::test_function_name
 pytest tests/test_file.py -k "test_function_name"
@@ -188,9 +197,9 @@ mypy .
 
 ## Notes for Agents
 
-- This is a simple Flask + PyWebView desktop app
+- This is a Flask + PyWebView desktop app (macOS only)
 - No complex build systems or CI/CD
-- The app uses native file dialogs via PyWebView
 - All file deletions move files to Trash (recoverable)
 - Supported image formats: jpg, jpeg, png, bmp, webp, tiff, tif
 - Follow PEP 8 style guidelines
+- The app is desktop-only (no web mode)
