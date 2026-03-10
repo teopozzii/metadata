@@ -49,5 +49,3 @@ def find_duplicates(folder_path: Path) -> list[DuplicatePair]:
                     seen_pairs.add(pair)
     
     return duplicates
-    
-    return duplicates
