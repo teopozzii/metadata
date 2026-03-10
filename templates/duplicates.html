@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Remove Duplicates{% endblock %}
+
+{% block content %}
+<div class="app-header">
+    <h1>🗑️ Remove Duplicates</h1>
+    <p class="subtitle">Find and remove duplicate images</p>
+</div>
+
+<button class="btn-back" onclick="goBack()">← Back to Home</button>
+
+<div id="folder-select" class="message message-info">
+    <p>Click the button below to select a folder containing images to scan:</p>
+    <button class="btn btn-primary" style="margin-top: 15px;" onclick="selectFolder()">
+        📂 Select Folder
+    </button>
+</div>
+
+<div id="scanning" class="loading hidden">
+    <div class="spinner"></div>
+    <p>Scanning folder for images...</p>
+</div>
+
+<div id="processing" class="loading hidden">
+    <div class="spinner"></div>
+    <p>Computing image hashes...</p>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <p style="margin-top: 10px;" id="progress-text">0%</p>
+    </div>
+</div>
+
+<div id="results" class="hidden">
+    <div class="message message-info" id="results-info"></div>
+    
+    <div id="pair-container"></div>
+    
+    <div id="completion" class="hidden">
+        <div class="message message-success">
+            <h3>✅ Complete!</h3>
+            <p id="completion-text"></p>
+        </div>
+        <button class="btn btn-primary" onclick="resetApp()">Start Over</button>
+    </div>
+</div>
+
+<div id="error" class="hidden">
+    <div class="message message-error" id="error-text"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentFolder = '';
+let duplicates = [];
+let currentPairIndex = 0;
+let keptFiles = new Set();
+let deletedFiles = new Set();
+
+function goBack() {
+    window.location.href = '/';
+}
+
+function resetApp() {
+    currentFolder = '';
+    duplicates = [];
+    currentPairIndex = 0;
+    keptFiles = new Set();
+    deletedFiles = new Set();
+    
+    document.getElementById('folder-select').classList.remove('hidden');
+    document.getElementById('scanning').classList.add('hidden');
+    document.getElementById('processing').classList.add('hidden');
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('error').classList.add('hidden');
+    document.getElementById('completion').classList.add('hidden');
+}
+
+function showError(msg) {
+    document.getElementById('folder-select').classList.add('hidden');
+    document.getElementById('error-text').textContent = msg;
+    document.getElementById('error').classList.remove('hidden');
+}
+
+function selectFolder() {
+    openFolderPicker(function(folderPath) {
+        if (folderPath) {
+            startScan(folderPath);
+        }
+    });
+}
+
+function startScan(folderPath) {
+    currentFolder = folderPath;
+    
+    document.getElementById('folder-select').classList.add('hidden');
+    document.getElementById('scanning').classList.remove('hidden');
+    
+    fetch('/duplicates/select-folder', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({folder_path: folderPath})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+        
+        document.getElementById('scanning').classList.add('hidden');
+        document.getElementById('processing').classList.remove('hidden');
+        
+        findDuplicates();
+    })
+    .catch(err => {
+        showError('Error: ' + err.message);
+    });
+}
+
+function findDuplicates() {
+    fetch('/duplicates/scan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({folder_path: currentFolder})
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('processing').classList.add('hidden');
+        
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+        
+        duplicates = data.duplicates;
+        
+        document.getElementById('results-info').textContent = 
+            `Found ${data.total_pairs} duplicate pair(s)`;
+        document.getElementById('results').classList.remove('hidden');
+        
+        if (duplicates.length === 0) {
+            document.getElementById('completion').classList.remove('hidden');
+            document.getElementById('completion-text').textContent = 
+                'No duplicates found. Your folder is clean!';
+        } else {
+            showCurrentPair();
+        }
+    })
+    .catch(err => {
+        showError('Error: ' + err.message);
+    });
+}
+
+function getThumbnailUrl(filePath) {
+    const encoded = encodeURIComponent(filePath);
+    return `/duplicates/thumbnail?path=${encoded}`;
+}
+
+function showCurrentPair() {
+    const container = document.getElementById('pair-container');
+    container.innerHTML = '';
+    
+    if (currentPairIndex >= duplicates.length) {
+        showCompletion();
+        return;
+    }
+    
+    const pair = duplicates[currentPairIndex];
+    
+    const pairDiv = document.createElement('div');
+    pairDiv.className = 'duplicate-pair';
+    pairDiv.id = 'pair-' + currentPairIndex;
+    
+    const fileAPath = currentFolder + '/' + pair.file_a;
+    const fileBPath = currentFolder + '/' + pair.file_b;
+    
+    pairDiv.innerHTML = `
+        <div class="pair-header">
+            <span class="pair-counter">Pair ${currentPairIndex + 1} of ${duplicates.length}</span>
+            <span>Distance: ${pair.distance}</span>
+        </div>
+        <div class="pair-images">
+            <div class="image-container">
+                <div class="image-wrapper" id="wrapper-a">
+                    <img src="${getThumbnailUrl(fileAPath)}" alt="${pair.file_a}">
+                </div>
+                <div class="image-buttons">
+                    <button class="image-btn keep" onclick="keepFile('${fileAPath}', 'a')">Keep</button>
+                </div>
+                <p style="margin-top: 10px; color: #aaa;">${pair.file_a}</p>
+            </div>
+            <div class="image-container">
+                <div class="image-wrapper" id="wrapper-b">
+                    <img src="${getThumbnailUrl(fileBPath)}" alt="${pair.file_b}">
+                </div>
+                <div class="image-buttons">
+                    <button class="image-btn keep" onclick="keepFile('${fileBPath}', 'b')">Keep</button>
+                </div>
+                <p style="margin-top: 10px; color: #aaa;">${pair.file_b}</p>
+            </div>
+        </div>
+        <button class="skip-pair-btn" onclick="skipPair()">Skip This Pair</button>
+    `;
+    
+    container.appendChild(pairDiv);
+}
+
+function keepFile(filePath, which) {
+    keptFiles.add(filePath);
+    
+    const wrapper = document.getElementById('wrapper-' + which);
+    wrapper.classList.add('placeholder');
+    wrapper.innerHTML = '<span>✓ Kept</span>';
+    
+    // Show the other image's deletion option
+    const other = which === 'a' ? 'b' : 'a';
+    const otherWrapper = document.getElementById('wrapper-' + other);
+    
+    if (!otherWrapper.classList.contains('placeholder')) {
+        // Add delete button to other if not already kept
+        const otherContainer = otherWrapper.parentElement;
+        const buttonsDiv = otherContainer.querySelector('.image-buttons');
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'image-btn skip';
+        deleteBtn.textContent = '🗑️ Delete';
+        deleteBtn.onclick = function() {
+            deleteFile(currentPairIndex === 0 ? 
+                (which === 'a' ? duplicates[0].file_b : duplicates[0].file_a) :
+                (which === 'a' ? duplicates[currentPairIndex].file_b : duplicates[currentPairIndex].file_a));
+        };
+        buttonsDiv.appendChild(deleteBtn);
+    }
+    
+    // Add Skip button to move to next
+    const pairDiv = document.getElementById('pair-' + currentPairIndex);
+    let skipBtn = pairDiv.querySelector('.skip-pair-btn');
+    
+    if (!skipBtn) {
+        skipBtn = document.createElement('button');
+        skipBtn.className = 'skip-pair-btn';
+        skipBtn.onclick = skipPair;
+        pairDiv.appendChild(skipBtn);
+    }
+    
+    skipBtn.textContent = 'Next →';
+    skipBtn.style.display = 'block';
+}
+
+function deleteFile(filename) {
+    const filePath = currentFolder + '/' + filename;
+    
+    fetch('/duplicates/delete', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({file_path: filePath})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            deletedFiles.add(filePath);
+            skipPair();
+        } else {
+            alert('Failed to delete file: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        alert('Error deleting file: ' + err.message);
+    });
+}
+
+function skipPair() {
+    currentPairIndex++;
+    showCurrentPair();
+}
+
+function showCompletion() {
+    document.getElementById('completion').classList.remove('hidden');
+    
+    const totalImages = duplicates.length * 2;
+    const keptCount = keptFiles.size;
+    const deletedCount = deletedFiles.size;
+    const skippedCount = totalImages - keptCount - deletedCount;
+    
+    const finalKeptCount = keptCount + skippedCount;
+    
+    document.getElementById('completion-text').textContent = 
+        `Kept ${finalKeptCount} image(s). Removed ${deletedCount} duplicate(s).`;
+}
+</script>
+{% endblock %}

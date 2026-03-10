@@ -1,11 +1,94 @@
-## Working with metadata
+# Metadata App
 
-Repository storing scripts to extract and work with metadata.
+A desktop application for working with image metadata on macOS. Find duplicate images and retrieve EXIF shot dates from your photo collection.
 
-- `pic_dates.sh` &rarr; extracts original creation date from `jpg` files via `mdls` and appends it to the filename for easier identification.
-- `find_dup_pics.py` &rarr; prints pairs of pictures that are identical or similar in content to identify duplicates faster; uses `imagehash`, $O(n^2)$ execution time. Allows replication across folders via handy menu in rich text, implemented with `questionary` library.
+## Features
 
-<br><br>
-<p align="center">
-  <img src="docs/ex1.png" alt="Example usage of <code>find_dup_pics.py</code>" width="900" height="500">
-</p>
+### 🗑️ Remove Duplicates
+- Find duplicate and similar images using perceptual hashing
+- Interactive side-by-side comparison
+- Choose to keep one, both, or skip (skip = keep both)
+- Files are moved to Trash (recoverable)
+
+### 📅 Retrieve Shot Date
+- Extract EXIF metadata from images
+- Gallery view with hover overlay showing filename and date
+- Export report to JSON
+
+## Installation (Development)
+
+```bash
+pip install -r requirements.txt
+```
+
+## Usage (Development)
+
+```bash
+python app.py
+```
+
+This opens the app in a native macOS window.
+
+## Building for Distribution
+
+To create a distributable .app bundle (no Python installation required):
+
+```bash
+# Install PyInstaller
+pip install pyinstaller
+
+# Build the app
+pyinstaller --windowed --icon=logo_trasparente.png -n "Metadata App" --add-data "templates:templates" --add-data "static:static" app.py
+```
+
+The app will be created in: `dist/Metadata App.app`
+
+To distribute:
+- Drag `dist/Metadata App.app` to `/Applications`
+- Or create a .zip for sharing
+
+## Download
+
+Pre-built releases are available on the [GitHub Releases](https://github.com/teopozzii/metadata/releases) page. The app is automatically built and released when changes are pushed to `main`.
+
+## Supported Image Formats
+
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- BMP (.bmp)
+- WebP (.webp)
+- TIFF (.tiff, .tif)
+
+## Requirements
+
+- Python 3.11+
+- macOS (required for native folder dialogs)
+
+## Project Structure
+
+```
+metadata/
+├── app.py                 # Main application (Flask + PyWebView)
+├── config.py             # Configuration settings
+├── src/                  # Source modules
+│   ├── __init__.py
+│   ├── image_utils.py    # Image processing (hashing, thumbnails)
+│   ├── duplicate_finder.py  # Duplicate detection logic
+│   ├── exif_extractor.py    # EXIF metadata extraction
+│   └── file_operations.py   # File operations (trash)
+├── templates/            # HTML templates
+│   ├── base.html
+│   ├── landing.html
+│   ├── duplicates.html
+│   └── gallery.html
+├── static/               # CSS and JavaScript
+│   ├── css/style.css
+│   └── js/script.js
+└── requirements.txt
+```
+
+## Legacy Scripts
+
+The original CLI implementations are preserved for reference:
+- `find_dup_pics.py` - Original duplicate finder (terminal-based)
+- `pic_dates.sh` - Original date extraction (shell script)

@@ -11,7 +11,7 @@ from rich.panel import Panel
 import questionary
 
 console = Console()
-THRESHOLD = 5
+THRESHOLD = 1
 
 def pick_folder(start_path="."):
     """Navigatore interattivo per scegliere la cartella"""
