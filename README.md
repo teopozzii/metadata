@@ -15,19 +15,37 @@ A desktop application for working with image metadata on macOS. Find duplicate i
 - Gallery view with hover overlay showing filename and date
 - Export report to JSON
 
-## Installation
+## Installation (Development)
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+## Usage (Development)
 
 ```bash
 python app.py
 ```
 
 This opens the app in a native macOS window.
+
+## Building for Distribution
+
+To create a distributable .app bundle (no Python installation required):
+
+```bash
+# Install PyInstaller
+pip install pyinstaller
+
+# Build the app
+pyinstaller --windowed --icon=logo_trasparente.png -n "Metadata App" --add-data "templates:templates" --add-data "static:static" app.py
+```
+
+The app will be created in: `dist/Metadata App.app`
+
+To distribute:
+- Drag `dist/Metadata App.app` to `/Applications`
+- Or create a .zip for sharing
 
 ## Supported Image Formats
 

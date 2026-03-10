@@ -20,6 +20,27 @@ This is a Python desktop application for working with image metadata on macOS. I
 
 Install with: `pip install -r requirements.txt`
 
+## Building the App
+
+To create a distributable .app bundle (without requiring Python installation):
+
+```bash
+# Install PyInstaller
+pip install pyinstaller
+
+# Build the app
+pyinstaller --windowed --icon=logo_trasparente.png -n "Metadata App" --add-data "templates:templates" --add-data "static:static" app.py
+```
+
+The app will be created in: `dist/Metadata App.app`
+
+Key flags:
+- `--windowed`: Creates macOS .app bundle (no console)
+- `--icon=logo_trasparente.png`: Sets app icon (PyInstaller auto-converts PNG to .icns)
+- `--add-data`: Includes templates and static folders
+
+To distribute: Drag `dist/Metadata App.app` to `/Applications` or create a .zip
+
 ---
 
 ## Running the Application
@@ -41,6 +62,7 @@ metadata/
 ├── app.py                 # Main Flask application + PyWebView entry
 ├── config.py              # App configuration
 ├── requirements.txt       # Python dependencies
+├── logo_trasparente.png   # App icon (used by PyInstaller for .icns)
 ├── src/
 │   ├── __init__.py
 │   ├── image_utils.py     # Image processing (hashing, thumbnails)
